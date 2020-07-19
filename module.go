@@ -101,8 +101,17 @@ func loadSupressor(c *pulseaudio.Client, inp input, ui *uistate) error {
 
 	time.Sleep(time.Millisecond * 1000) // pulseaudio gets SIGKILL'd because of RLIMITS if we send these too fast
 
+	log.Printf("Current input device supports dynamic latency: %t\n", inp.dynamicLatency)
+
+	latency := uint64(0)
+	if !inp.dynamicLatency {
+		log.Printf("Input device is fixed latency, Setting base latency: %d\n", inp.latency)
+		latency = inp.latency
+	}
+	latency++
+
 	idx, err = c.LoadModule("module-loopback",
-		fmt.Sprintf("source=%s sink=nui_mic_raw_in channels=1 latency_msec=1", inp.ID))
+		fmt.Sprintf("source=%s sink=nui_mic_raw_in channels=1 latency_msec=%d", inp.ID, latency))
 	if err != nil {
 		return err
 	}

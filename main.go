@@ -22,10 +22,12 @@ import (
 //go:generate go run scripts/embedlicenses.go
 
 type input struct {
-	ID        string
-	Name      string
-	isMonitor bool
-	checked   bool
+	ID             string
+	Name           string
+	isMonitor      bool
+	checked        bool
+	dynamicLatency bool
+	latency        uint64
 }
 
 func main() {
@@ -93,6 +95,10 @@ func main() {
 		inp.ID = sources[i].Name
 		inp.Name = sources[i].PropList["device.description"]
 		inp.isMonitor = (sources[i].MonitorSourceIndex != 0xffffffff)
+		inp.latency = sources[i].Latency
+
+		//PA_SOURCE_DYNAMIC_LATENCY = 0x0040U
+		inp.dynamicLatency = sources[i].Flags&uint32(0x0040) != 0
 
 		inputs = append(inputs, inp)
 	}
