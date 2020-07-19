@@ -103,15 +103,15 @@ func loadSupressor(c *pulseaudio.Client, inp input, ui *uistate) error {
 
 	log.Printf("Current input device supports dynamic latency: %t\n", inp.dynamicLatency)
 
-	latency := uint64(0)
-	if !inp.dynamicLatency {
-		log.Printf("Input device is fixed latency, Setting base latency: %d\n", inp.latency)
-		latency = inp.latency
-	}
-	latency++
+	loopbackargs := ""
 
-	idx, err = c.LoadModule("module-loopback",
-		fmt.Sprintf("source=%s sink=nui_mic_raw_in channels=1 latency_msec=%d", inp.ID, latency))
+	if !inp.dynamicLatency {
+		loopbackargs = fmt.Sprintf("source=%s sink=nui_mic_raw_in channels=1", inp.ID)
+	} else {
+		loopbackargs = fmt.Sprintf("source=%s sink=nui_mic_raw_in channels=1 latency_msec=1", inp.ID)
+	}
+
+	idx, err = c.LoadModule("module-loopback", loopbackargs)
 	if err != nil {
 		return err
 	}
